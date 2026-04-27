@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>3H Case Simulation</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: white;
+    margin: 0;
+    display: flex;
+}
+
+#sidebar {
+    width: 30%;
+    background: #1e293b;
+    padding: 20px;
+    min-height: 100vh;
+    overflow-y: auto;
+}
+
+#main {
+    width: 70%;
+    padding: 30px;
+    text-align: center;
+}
+
+#gameCard {
+    border: 1px solid #334155;
+    border-radius: 18px;
+    padding: 24px;
+    background: #111827;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
+
+#sceneImg {
+    width: 180px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid #334155;
+    background: #111827;
+    margin: 0 auto 16px auto;
+    display: block;
+}
+
+button {
+    display: block;
+    margin: 10px auto;
+    padding: 13px;
+    width: 85%;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background: #334155;
+    color: white;
+    font-size: 15px;
+}
+
+button:hover {
+    background: #475569;
+}
+
+#backBtn {
+    background: #64748b;
+}
+
+.riskBarContainer {
+    width: 100%;
+    background: #334155;
+    border-radius: 6px;
+    margin-top: 8px;
+}
+
+.riskBar {
+    height: 12px;
+    width: 12%;
+    border-radius: 6px;
+    background: green;
+}
+
+#story {
+    white-space: pre-line;
+    font-size: 18px;
+    line-height: 1.5;
+}
+
+.counter {
+    margin-top: 20px;
+    font-size: 18px;
+}
+
+.lens {
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 10px;
+    background: #1e293b;
+    color: #dbeafe;
+    white-space: pre-line;
+    font-size: 15px;
+    line-height: 1.4;
+    display: none;
+}
+</style>
+</head>
+
+<body>
+
+<div id="sidebar">
+<h2>Case File</h2>
+
+<p><b>Youth:</b> 15F</p>
+<p><b>Background:</b> Care & Protection Order (CPO) case. History of aggression and emotional reactivity.</p>
+
+<hr>
+
+<p><b>Situation:</b><br>
+2 days before SGH Awards Day, staff learn that legal guardians shared negative information about natural father during a supervised CPO visit. Youth is upset and wants to confront father publicly. Family has already been invited.
+</p>
+
+<hr>
+
+<p><b>Goal:</b><br>
+Decide if youth and family should still attend the Awards day in 2 days.</p>
+
+<hr>
+
+<p><b>Tension:</b><br>
+Allowing the family to proceed may cause things to escalate. Rescinding the invitation may affect trust and family relationships.</p>
+
+<hr>
+
+<p><b>⚠️ Escalation Risk</b></p>
+<div class="riskBarContainer">
+    <div class="riskBar" id="riskBar"></div>
+</div>
+
+</div>
+
+<div id="main">
+<div id="gameCard">
+
+<h1>Awards Day: Your Judgment Call</h1>
+
+<img id="sceneImg" alt="Simple doodle scene">
+
+<p id="story"></p>
+
+<div id="choices"></div>
+
+<button id="backBtn" onclick="goBack()" style="display:none;">
+← Back
+</button>
+
+<div class="lens" id="lens"></div>
+
+<div class="counter">
+❤️ Heart: <span id="heart">0</span> |
+🧠 Head: <span id="head">0</span> |
+✋ Hands: <span id="hands">0</span>
+</div>
+
+</div>
+</div>
+
+<script>
+
+let heart = 0;
+let head = 0;
+let hands = 0;
+let risk = 1;
+let currentNode = "start";
+let historyStack = [];
+
+function makeDoodle(bg, icon) {
+    const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="500" height="320" viewBox="0 0 500 320">
+        <rect width="500" height="320" rx="24" fill="${bg}"/>
+        <circle cx="80" cy="65" r="32" fill="#ffffff18"/>
+        <circle cx="430" cy="250" r="48" fill="#ffffff12"/>
+        <path d="M45 245 C120 200, 170 275, 245 225 S370 210, 455 250" fill="none" stroke="#ffffff28" stroke-width="6" stroke-linecap="round"/>
+        <text x="350" y="95" fill="white" font-size="54" font-family="Arial">${icon}</text>
+
+        <g transform="translate(150,105)">
+            <circle cx="55" cy="45" r="30" fill="#f8fafc"/>
+            <rect x="25" y="82" width="60" height="78" rx="28" fill="#f8fafc"/>
+            <circle cx="45" cy="42" r="4" fill="#0f172a"/>
+            <circle cx="65" cy="42" r="4" fill="#0f172a"/>
+            <path d="M43 58 Q55 67 67 58" stroke="#0f172a" stroke-width="4" fill="none" stroke-linecap="round"/>
+        </g>
+
+        <g transform="translate(255,120)">
+            <circle cx="50" cy="38" r="26" fill="#cbd5e1"/>
+            <rect x="24" y="70" width="52" height="70" rx="24" fill="#cbd5e1"/>
+            <circle cx="42" cy="36" r="3.5" fill="#0f172a"/>
+            <circle cx="58" cy="36" r="3.5" fill="#0f172a"/>
+            <path d="M40 51 Q50 45 60 51" stroke="#0f172a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        </g>
+    </svg>`;
+    return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+}
+
+const scenes = {
+    office: makeDoodle("#1e3a8a", "📋"),
+    youth: makeDoodle("#7f1d1d", "❤️"),
+    cpo: makeDoodle("#312e81", "🔍"),
+    father: makeDoodle("#14532d", "👤"),
+    team: makeDoodle("#713f12", "🤝"),
+    event: makeDoodle("#0f766e", "🏅"),
+    risk: makeDoodle("#7f1d1d", "⚠️")
+};
+
+const story = {
+
+start: {
+scene: "office",
+text: "Staff inform you that the youth is angry and intends to confront her father publicly during Awards Day.\n\nThe event is in 2 days, and family has already been invited.\n\nWhat do you prioritise first?",
+choices: [
+{
+text: "Meet the youth first to understand what happened and why she is feeling this way.",
+next: "process",
+effect: ()=>{ heart += 1; },
+lens: "3H Lens:\n❤️ Heart leads here — you begin by understanding the youth’s emotions before deciding.\n🧠 Head still needs to follow through through risk assessment."
+},
+{
+text: "Clarify with CPO first so decisions are based on verified facts, not second-hand staff reports.",
+next: "investigate",
+effect: ()=>{ head += 1; },
+lens: "3H Lens:\n🧠 Head leads here — you prioritise factual clarity and system accountability before deciding.\n❤️ Heart still needs to come in when engaging the youth."
+},
+{
+text: "Alert supervisor and staff early because the event is in 2 days and violence history is present.",
+next: "staff_brief",
+effect: ()=>{ hands += 1; risk += 1; },
+lens: "3H Lens:\n✋ Hands leads here — you coordinate early.\n⚠️ Trade-off: coordination without enough youth/family assessment can prematurely frame the case as containment."
+}
+]
+},
+
+process: {
+scene: "youth",
+text: "The youth says:\n\n'They told me he does not actually believe in me. I need to hear the truth for myself.'\n\nShe appears tense, angry, and fixated on confronting him.",
+choices: [
+{
+text: "Explore what confronting father would mean to her and what she hopes would change.",
+next: "meaning",
+effect: ()=>{ heart += 1; head += 1; },
+lens: "3H Lens:\n❤️ Heart: validates her emotions.\n🧠 Head: assesses intent, goal, and escalation risk rather than assuming defiance."
+},
+{
+text: "Acknowledge her anger, but explain that Awards Day may not be the safe setting for this conversation.",
+next: "youth_plan",
+effect: ()=>{ heart += 1; head += 1; },
+lens: "3H Lens:\n❤️ Heart: acknowledges her feelings.\n🧠 Head: begins separating valid feelings from unsafe timing/setting."
+},
+{
+text: "Focus on behavioural expectations for tomorrow so she is clear on boundaries.",
+next: "surface",
+effect: ()=>{ risk += 1; },
+lens: "3H Lens:\n✋ Hands: gives containment.\n⚠️ Trade-off: may secure surface compliance without understanding what is driving the behaviour."
+}
+]
+},
+
+investigate: {
+scene: "cpo",
+text: "The CPO confirms there was a supervision lapse. The legal guardians shared negative information about the natural father during a supervised visit.",
+choices: [
+{
+text: "Clarify exactly what was said, how the youth responded, and whether father has been informed.",
+next: "details",
+effect: ()=>{ head += 1; },
+lens: "3H Lens:\n🧠 Head: strengthens assessment by clarifying facts, impact, and stakeholder awareness."
+},
+{
+text: "Document the lapse and proceed with internal planning first because time is short.",
+next: "staff_brief",
+effect: ()=>{ hands += 1; risk += 1; },
+lens: "3H Lens:\n✋ Hands: moves the system.\n⚠️ Trade-off: father/youth assessment may still be incomplete."
+},
+{
+text: "Recommend cancelling family attendance to prevent the lapse from becoming a public incident.",
+next: "neutral",
+effect: ()=>{},
+lens: "3H Lens:\n✋ Hands: removes immediate risk.\n🧠 Head question: have we assessed whether cancellation is proportionate or relationally harmful?"
+}
+]
+},
+
+meaning: {
+scene: "youth",
+text: "She says:\n\n'I want him to admit what he did. I don’t want to act like everything is okay.'\n\nYou realise this is not only about defiance. It is about hurt, loyalty, and wanting control.",
+choices: [
+{
+text: "Work with her on how to hold the feeling without acting it out publicly.",
+next: "youth_plan",
+effect: ()=>{ heart += 1; head += 1; },
+lens: "3H Lens:\n❤️ Heart: accepts her hurt as real.\n🧠 Head: assesses the difference between emotional need and unsafe behaviour."
+},
+{
+text: "Tell her the conversation with father can happen another day and shift focus back to Awards Day expectations.",
+next: "surface",
+effect: ()=>{ risk += 1; },
+lens: "3H Lens:\n✋ Hands: redirects quickly.\n⚠️ Trade-off: may feel dismissive if her emotions are not processed."
+}
+]
+},
+
+details: {
+scene: "cpo",
+text: "You find out the guardians framed the father negatively. The youth feels misled and wants to challenge him publicly.\n\nThe family invitation has already gone out, so any cancellation will also affect expectations and trust.",
+choices: [
+{
+text: "Call father to assess his readiness and comfort level before deciding.",
+next: "father",
+effect: ()=>{ head += 1; hands += 1; },
+lens: "3H Lens:\n🧠 Head: assesses stakeholder capacity.\n✋ Hands: engages a key person needed for safe follow-through."
+},
+{
+text: "First brief staff and supervisor so the institution is ready before contacting father.",
+next: "staff_brief",
+effect: ()=>{ hands += 1; head += 1; },
+lens: "3H Lens:\n✋ Hands: aligns internal response.\n🧠 Head: useful if it does not replace assessment of father/youth."
+},
+{
+text: "Avoid contacting father for now to prevent stirring further tension before the event.",
+next: "one_sided",
+effect: ()=>{ risk += 1; },
+lens: "3H Lens:\n⚠️ Trade-off: reduces immediate discomfort, but leaves father’s capacity unknown."
+}
+]
+},
+
+staff_brief: {
+scene: "team",
+text: "You brief staff that there may be emotional tension during Awards Day.\n\nStaff ask: 'Should we cancel the family’s attendance?'",
+choices: [
+{
+text: "Hold the decision until youth, father, and safeguards are assessed.",
+next: "father",
+effect: ()=>{ head += 1; },
+lens: "3H Lens:\n🧠 Head: resists premature closure.\n✋ Hands will be stronger once based on clearer assessment."
+},
+{
+text: "Cancel family attendance because public escalation would be too costly.",
+next: "neutral",
+effect: ()=>{},
+lens: "3H Lens:\n✋ Hands: removes a visible risk.\n⚠️ Trade-off: may protect the event but damage trust and miss a safe connection opportunity."
+},
+{
+text: "Proceed with event but keep staff highly visible around the youth and father.",
+next: "risky_path",
+effect: ()=>{ risk += 2; },
+lens: "3H Lens:\n✋ Hands: visible containment.\n⚠️ Trade-off: without relational assessment, it may increase tension or shame."
+}
+]
+},
+
+youth_plan: {
+scene: "youth",
+text: "You work with the youth on what she can do if she feels angry during the event.\n\nShe agrees not to raise the issue during the ceremony, but still appears emotionally affected.",
+choices: [
+{
+text: "Assess father’s readiness before deciding whether the event can proceed safely.",
+next: "father",
+effect: ()=>{ head += 1; hands += 1; },
+lens: "3H Lens:\n🧠 Head: does not rely only on youth’s verbal agreement.\n✋ Hands: brings in the person who may need to de-escalate."
+},
+{
+text: "Proceed based on her agreement, with staff prepared to step in if needed.",
+next: "risky_path",
+effect: ()=>{ hands += 1; risk += 1; },
+lens: "3H Lens:\n✋ Hands: practical contingency.\n⚠️ Trade-off: verbal agreement may not hold under emotional activation."
+}
+]
+},
+
+one_sided: {
+scene: "risk",
+text: "You focus on only one part of the system.\n\nThe youth’s emotions are considered, but father’s ability to support or manage the situation remains unknown.",
+choices: [
+{
+text: "Reconsider and contact father before deciding.",
+next: "father",
+effect: ()=>{ head += 1; hands += 1; },
+lens: "3H Lens:\n🧠 Head: returns to systemic assessment.\n✋ Hands: aligns stakeholders."
+},
+{
+text: "Proceed with internal safeguards only.",
+next: "risky_path",
+effect: ()=>{ risk += 2; },
+lens: "3H Lens:\n⚠️ Internal safeguards help, but the key relational actor remains unassessed."
+}
+]
+},
+
+surface: {
+scene: "youth",
+text: "She agrees verbally, but emotional tension remains high.\n\nThere is compliance on the surface, but not enough assessment underneath.",
+choices: [
+{
+text: "Reassess deeper instead of relying on compliance.",
+next: "meaning",
+effect: ()=>{ head += 1; },
+lens: "3H Lens:\n🧠 Head: recognises that agreement is not the same as regulation."
+},
+{
+text: "Proceed because she has clearly agreed not to raise it.",
+next: "risky_path",
+effect: ()=>{ risk += 2; },
+lens: "3H Lens:\n⚠️ Trade-off: takes compliance at face value despite unresolved emotional activation."
+}
+]
+},
+
+father: {
+scene: "father",
+text: "Father says:\n\n'I know her temperament well. I can handle it if she gets upset. I still want to attend and support her.'",
+choices: [
+{
+text: "Ask him specifically how he would respond if she confronts him publicly.",
+next: "stress_test",
+effect: ()=>{ head += 1; },
+lens: "3H Lens:\n🧠 Head: tests capacity rather than accepting confidence at face value."
+},
+{
+text: "Proceed because father knows her temperament best.",
+next: "weak_plan",
+effect: ()=>{ risk += 1; },
+lens: "3H Lens:\n❤️ Heart: respects family knowledge.\n⚠️ Trade-off: confidence is not yet an assessed plan."
+},
+{
+text: "Cancel because the public setting creates too much uncertainty.",
+next: "neutral",
+effect: ()=>{},
+lens: "3H Lens:\n✋ Hands: removes event risk.\n🧠 Head question: is the risk unmanageable or simply uncomfortable?"
+}
+]
+},
+
+stress_test: {
+scene: "father",
+text: "You ask:\n\n'If she confronts you during the event, what would you do?'\n\nFather explains that he would stay calm, avoid arguing, acknowledge her feelings, and speak to her privately after the event if needed.",
+choices: [
+{
+text: "Proceed with father attending, youth pre-briefed, and staff monitoring discreetly.",
+next: "plan",
+effect: ()=>{ head += 1; hands += 1; },
+lens: "3H Lens:\n❤️ Heart: preserves meaningful family support.\n🧠 Head: assessed risk and capacity.\n✋ Hands: prepares safeguards."
+},
+{
+text: "Proceed but separate father and youth unless the youth initiates contact.",
+next: "neutral",
+effect: ()=>{ hands += 1; },
+lens: "3H Lens:\n✋ Hands: cautious containment.\n⚠️ Trade-off: may reduce relational opportunity and feel artificial."
+}
+]
+},
+
+weak_plan: {
+scene: "father",
+text: "Father is confident, but the plan is not fully tested.\n\nConfidence alone is not the same as assessed capacity.",
+choices: [
+{
+text: "Go back and stress-test his plan.",
+next: "stress_test",
+effect: ()=>{ head += 1; },
+lens: "3H Lens:\n🧠 Head: strengthens assessment before action."
+},
+{
+text: "Proceed with only general confidence and staff standby.",
+next: "risky_path",
+effect: ()=>{ hands += 1; risk += 1; },
+lens: "3H Lens:\n✋ Hands: standby support exists.\n⚠️ Trade-off: the key de-escalation plan remains vague."
+}
+]
+},
+
+plan: {
+scene: "team",
+text: "You prepare a safety plan:\n\n- Father is briefed\n- Staff are on standby\n- Youth is reminded not to raise the issue during the ceremony\n- Staff are ready to bring her aside if she escalates\n- Team agrees to monitor family dynamics closely\n\nBefore proceeding, one question remains: is the plan only system-ready, or is the youth emotionally ready too?",
+choices: [
+{
+text: "Check whether the youth has been meaningfully engaged before proceeding.",
+next: "heart_check",
+effect: ()=>{ hands += 1; },
+lens: "3H Lens:\n✋ Hands: safeguards are ready.\n❤️ Heart check: safety planning should include the youth’s emotional state, not only external controls."
+},
+{
+text: "Proceed because father and staff safeguards are already in place.",
+next: "bad",
+effect: ()=>{ hands += 1; risk += 2; },
+lens: "3H Lens:\n⚠️ Missing Heart: father and staff may be prepared, but the youth may still feel unheard or emotionally activated."
+}
+]
+},
+
+heart_check: {
+scene: "youth",
+text: "Heart Check:\n\nYou meet the youth again and process her anger, hurt, and what she hopes to do if feelings rise during the event.\n\nShe still feels upset, but she can name what she will do if she feels triggered and agrees to let staff support her if needed.",
+choices: [
+{
+text: "Proceed with Awards Day.",
+next: "good",
+effect: ()=>{ heart += 1; },
+lens: "3H Lens:\n❤️ Heart completes the loop.\n🧠 Head and ✋ Hands created the plan, but Heart helps the plan hold with the youth."
+}
+]
+},
+
+risky_path: {
+scene: "risk",
+text: "Awards Day proceeds with gaps in assessment or preparation.",
+choices: [
+{
+text: "See outcome.",
+next: "bad",
+effect: ()=>{},
+lens: ""
+}
+]
+},
+
+good: {
+scene: "event",
+outcomeType: "good",
+text: "Outcome:\n\nAwards Day proceeds. Tension is present, but father manages the interaction calmly. Staff monitor the situation and remain ready to intervene.\n\nNo incident occurs.",
+choices: [],
+reflection: true
+},
+
+neutral: {
+scene: "office",
+outcomeType: "neutral",
+text: "Outcome:\n\nThe family attendance is cancelled or restricted. Immediate risk is reduced, but the youth feels disappointed and unheard. Family trust may also be affected.",
+choices: [],
+reflection: true
+},
+
+bad: {
+scene: "risk",
+outcomeType: "bad",
+text: "Outcome:\n\nThe youth confronts father publicly. The situation escalates and staff intervention is required.",
+choices: [],
+reflection: true
+}
+
+};
+
+function updateUI(){
+document.getElementById("heart").innerText = heart;
+document.getElementById("head").innerText = head;
+document.getElementById("hands").innerText = hands;
+
+let bar = document.getElementById("riskBar");
+let width = Math.min(risk * 12, 100);
+bar.style.width = width + "%";
+
+if(risk <= 2) {
+    bar.style.background = "green";
+} else if(risk <= 4) {
+    bar.style.background = "orange";
+} else {
+    bar.style.background = "red";
+}
+}
+
+function generateReflection(outcomeType) {
+    if (outcomeType === "good") {
+        return "This outcome shows how the 3H’s work together. Heart helped the team understand the youth’s emotions, Head guided the assessment of risk and stakeholder readiness, and Hands translated the assessment into coordinated safeguards.";
+    }
+
+    if (outcomeType === "neutral") {
+        return "This outcome shows that avoiding risk is not the same as resolving the situation. Cancelling or restricting attendance may reduce immediate danger, but it can also affect trust, relationships, and future engagement.";
+    }
+
+    if (outcomeType === "bad") {
+        return "This outcome shows how risk can build when decisions are made without enough assessment, follow-through, or stakeholder alignment. Even if some helpful steps were taken, gaps in the process can still lead to escalation.";
+    }
+
+    return "";
+}
+
+function render(nodeKey){
+currentNode = nodeKey;
+let node = story[nodeKey];
+
+let displayText = node.text;
+
+if (node.reflection) {
+    displayText += "\n\nReflection:\n" + generateReflection(node.outcomeType);
+}
+
+document.getElementById("story").innerText = displayText;
+document.getElementById("sceneImg").src = scenes[node.scene];
+
+let lensBox = document.getElementById("lens");
+lensBox.style.display = "none";
+lensBox.innerText = "";
+
+let div = document.getElementById("choices");
+div.innerHTML = "";
+
+node.choices.forEach(c => {
+    let btn = document.createElement("button");
+    btn.innerText = c.text;
+    btn.onclick = () => {
+        historyStack.push({
+            node: currentNode,
+            heart: heart,
+            head: head,
+            hands: hands,
+            risk: risk
+        });
+
+        c.effect();
+        updateUI();
+
+        if (c.lens) {
+            lensBox.innerText = c.lens;
+            lensBox.style.display = "block";
+        }
+
+        render(c.next);
+    };
+    div.appendChild(btn);
+});
+
+document.getElementById("backBtn").style.display = historyStack.length > 0 ? "block" : "none";
+
+if(node.choices.length === 0){
+    let restart = document.createElement("button");
+    restart.innerText = "Restart";
+    restart.onclick = () => location.reload();
+    div.appendChild(restart);
+}
+}
+
+function goBack(){
+if(historyStack.length === 0) return;
+
+let previous = historyStack.pop();
+
+heart = previous.heart;
+head = previous.head;
+hands = previous.hands;
+risk = previous.risk;
+
+updateUI();
+render(previous.node);
+}
+
+render("start");
+updateUI();
+
+</script>
+
+</body>
+</html>
