@@ -112,7 +112,7 @@ button:hover {
 <h2>Case File</h2>
 
 <p><b>Youth:</b> 15F</p>
-<p><b>Background:</b> Care & Protection Order (CPO) case. History of aggression and emotional reactivity.</p>
+<p><b>Background:</b> Care & Protection Order case. History of aggression and emotional reactivity.</p>
 
 <hr>
 
@@ -123,12 +123,12 @@ button:hover {
 <hr>
 
 <p><b>Goal:</b><br>
-Decide if youth and family should still attend the Awards day in 2 days.</p>
+Decide if youth and family should still attend Awards Day in 2 days.</p>
 
 <hr>
 
 <p><b>Tension:</b><br>
-Allowing the family to proceed may cause things to escalate. Rescinding the invitation may affect trust and family relationships.</p>
+Allowing the family to proceed may cause escalation. Rescinding the invitation may affect trust and family relationships.</p>
 
 <hr>
 
@@ -289,6 +289,25 @@ lens: "3H Lens:\n✋ Hands: removes immediate risk.\n🧠 Head question: have we
 ]
 },
 
+youth_check_in: {
+scene: "youth",
+text: "Before deciding on family attendance, you meet the youth to understand her current emotional state and what she may do if she sees father during Awards Day.\n\nShe remains upset, but is able to talk about what triggered her and what support she may need.",
+choices: [
+{
+text: "Explore what confronting father would mean to her and what she hopes would change.",
+next: "meaning",
+effect: ()=>{ heart += 1; head += 1; },
+lens: "3H Lens:\n❤️ Heart: understands her perspective.\n🧠 Head: assesses intent and likely behaviour."
+},
+{
+text: "Acknowledge her feelings and shift into planning how she can cope during the event.",
+next: "youth_plan",
+effect: ()=>{ heart += 1; head += 1; },
+lens: "3H Lens:\n❤️ Heart: validates emotion.\n🧠 Head: translates emotion into risk planning."
+}
+]
+},
+
 meaning: {
 scene: "youth",
 text: "She says:\n\n'I want him to admit what he did. I don’t want to act like everything is okay.'\n\nYou realise this is not only about defiance. It is about hurt, loyalty, and wanting control.",
@@ -313,10 +332,10 @@ scene: "cpo",
 text: "You find out the guardians framed the father negatively. The youth feels misled and wants to challenge him publicly.\n\nThe family invitation has already gone out, so any cancellation will also affect expectations and trust.",
 choices: [
 {
-text: "Call father to assess his readiness and comfort level before deciding.",
-next: "father",
-effect: ()=>{ head += 1; hands += 1; },
-lens: "3H Lens:\n🧠 Head: assesses stakeholder capacity.\n✋ Hands: engages a key person needed for safe follow-through."
+text: "Meet the youth to understand her current emotional state before contacting father.",
+next: "youth_check_in",
+effect: ()=>{ heart += 1; },
+lens: "3H Lens:\n❤️ Heart: brings the youth’s current state into the assessment before moving to father/family planning."
 },
 {
 text: "First brief staff and supervisor so the institution is ready before contacting father.",
@@ -339,9 +358,9 @@ text: "You brief staff that there may be emotional tension during Awards Day.\n\
 choices: [
 {
 text: "Hold the decision until youth, father, and safeguards are assessed.",
-next: "father",
+next: "youth_check_in",
 effect: ()=>{ head += 1; },
-lens: "3H Lens:\n🧠 Head: resists premature closure.\n✋ Hands will be stronger once based on clearer assessment."
+lens: "3H Lens:\n🧠 Head: resists premature closure.\n❤️ Heart still needs to come in through the youth’s current state before deciding."
 },
 {
 text: "Cancel family attendance because public escalation would be too costly.",
@@ -382,10 +401,10 @@ scene: "risk",
 text: "You focus on only one part of the system.\n\nThe youth’s emotions are considered, but father’s ability to support or manage the situation remains unknown.",
 choices: [
 {
-text: "Reconsider and contact father before deciding.",
-next: "father",
-effect: ()=>{ head += 1; hands += 1; },
-lens: "3H Lens:\n🧠 Head: returns to systemic assessment.\n✋ Hands: aligns stakeholders."
+text: "Reconsider and speak with the youth before deciding on father/family involvement.",
+next: "youth_check_in",
+effect: ()=>{ heart += 1; head += 1; },
+lens: "3H Lens:\n❤️ Heart and 🧠 Head: returns to the youth’s current state before making a family decision."
 },
 {
 text: "Proceed with internal safeguards only.",
@@ -480,34 +499,21 @@ lens: "3H Lens:\n✋ Hands: standby support exists.\n⚠️ Trade-off: the key d
 
 plan: {
 scene: "team",
-text: "You prepare a safety plan:\n\n- Father is briefed\n- Staff are on standby\n- Youth is reminded not to raise the issue during the ceremony\n- Staff are ready to bring her aside if she escalates\n- Team agrees to monitor family dynamics closely\n\nBefore proceeding, one question remains: is the plan only system-ready, or is the youth emotionally ready too?",
+text: "You prepare a safety plan:\n\n- Father is briefed\n- Staff are on standby\n- Youth is reminded not to raise the issue during the ceremony\n- Staff are ready to bring her aside if she escalates\n- Team agrees to monitor family dynamics closely\n\nThe plan is now implemented. Outcome depends on whether the earlier assessment was balanced across youth, family, and system.",
 choices: [
 {
-text: "Check whether the youth has been meaningfully engaged before proceeding.",
-next: "heart_check",
+text: "Proceed with Awards Day.",
+next: "auto_outcome",
 effect: ()=>{ hands += 1; },
-lens: "3H Lens:\n✋ Hands: safeguards are ready.\n❤️ Heart check: safety planning should include the youth’s emotional state, not only external controls."
-},
-{
-text: "Proceed because father and staff safeguards are already in place.",
-next: "bad",
-effect: ()=>{ hands += 1; risk += 2; },
-lens: "3H Lens:\n⚠️ Missing Heart: father and staff may be prepared, but the youth may still feel unheard or emotionally activated."
+lens: "3H Lens:\n✋ Hands: safeguards are ready.\n🧠 Head and ❤️ Heart from earlier decisions determine whether the plan is likely to hold."
 }
 ]
 },
 
-heart_check: {
-scene: "youth",
-text: "Heart Check:\n\nYou meet the youth again and process her anger, hurt, and what she hopes to do if feelings rise during the event.\n\nShe still feels upset, but she can name what she will do if she feels triggered and agrees to let staff support her if needed.",
-choices: [
-{
-text: "Proceed with Awards Day.",
-next: "good",
-effect: ()=>{ heart += 1; },
-lens: "3H Lens:\n❤️ Heart completes the loop.\n🧠 Head and ✋ Hands created the plan, but Heart helps the plan hold with the youth."
-}
-]
+auto_outcome: {
+scene: "team",
+text: "",
+choices: []
 },
 
 risky_path: {
@@ -584,6 +590,18 @@ function generateReflection(outcomeType) {
 }
 
 function render(nodeKey){
+
+if (nodeKey === "auto_outcome") {
+    if (heart >= 2 && head >= 3 && hands >= 2 && risk <= 4) {
+        render("good");
+    } else if (risk >= 5) {
+        render("bad");
+    } else {
+        render("neutral");
+    }
+    return;
+}
+
 currentNode = nodeKey;
 let node = story[nodeKey];
 
