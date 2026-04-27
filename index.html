@@ -157,6 +157,35 @@ button:hover {
         padding: 12px;
     }
 }
+
+#qrBtn {
+    width: 100%;
+    margin-top: 12px;
+    background: #475569;
+}
+
+#qrBox {
+    margin-top: 12px;
+    text-align: center;
+    padding: 12px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 12px;
+}
+
+#qrBox p {
+    font-size: 13px;
+    color: #cbd5e1;
+    margin: 0 0 8px 0;
+}
+
+#qrCode {
+    width: 160px;
+    height: 160px;
+    background: white;
+    padding: 8px;
+    border-radius: 8px;
+}
 </style>
 </head>
 
@@ -191,8 +220,19 @@ Allowing the family to proceed may cause escalation. Rescinding the invitation m
     <div class="riskBar" id="riskBar"></div>
 </div>
 <hr>
-<p style="font-size:13px;">Scan to play</p>
-<img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://onlygits.github.io/3h-case-simulation/">
+
+<button onclick="toggleQR()" id="qrBtn">
+    Show QR Code
+</button>
+
+<div id="qrBox" style="display:none;">
+    <p>Scan to play</p>
+    <img 
+        id="qrCode"
+        src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https%3A%2F%2Fonlygits.github.io%2F3h-case-simulation%2F"
+        alt="QR Code">
+</div>
+    
 </div>
 
 <div id="main">
@@ -729,6 +769,19 @@ render(previous.node);
 render("start");
 updateUI();
 
+
+    function toggleQR() {
+    const box = document.getElementById("qrBox");
+    const btn = document.getElementById("qrBtn");
+
+    if (box.style.display === "none") {
+        box.style.display = "block";
+        btn.innerText = "Hide QR Code";
+    } else {
+        box.style.display = "none";
+        btn.innerText = "Show QR Code";
+    }
+}
 </script>
 
 </body>
