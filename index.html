@@ -186,6 +186,31 @@ button:hover {
     padding: 8px;
     border-radius: 8px;
 }
+
+#riskPanel {
+    margin: 14px auto 0 auto;
+    max-width: 420px;
+    padding: 10px 12px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 12px;
+}
+
+#riskLabel {
+    font-size: 14px;
+    color: #cbd5e1;
+    margin-bottom: 8px;
+}
+
+@keyframes pulseRisk {
+    0% { box-shadow: 0 0 0px rgba(255, 0, 0, 0.0); }
+    50% { box-shadow: 0 0 10px rgba(255, 0, 0, 0.6); }
+    100% { box-shadow: 0 0 0px rgba(255, 0, 0, 0.0); }
+}
+
+.pulse {
+    animation: pulseRisk 1.8s infinite;
+}
 </style>
 </head>
 
@@ -213,12 +238,7 @@ Decide if youth and family should still attend Awards Day in 2 days.</p>
 <p><b>Tension:</b><br>
 Allowing the family to proceed may cause escalation. Rescinding the invitation may affect trust and family relationships.</p>
 
-<hr>
 
-<p><b>⚠️ Escalation Risk</b></p>
-<div class="riskBarContainer">
-    <div class="riskBar" id="riskBar"></div>
-</div>
 <hr>
 
 <button onclick="toggleQR()" id="qrBtn">
@@ -258,6 +278,13 @@ Allowing the family to proceed may cause escalation. Rescinding the invitation m
 ✋ Hands: <span id="hands">0</span>
 </div>
 
+<div id="riskPanel">
+    <div id="riskLabel">⚠️ Escalation Risk: Low</div>
+    <div class="riskBarContainer">
+        <div class="riskBar" id="riskBar"></div>
+    </div>
+</div>
+    
 </div>
 </div>
 
@@ -657,15 +684,25 @@ document.getElementById("head").innerText = head;
 document.getElementById("hands").innerText = hands;
 
 let bar = document.getElementById("riskBar");
+let label = document.getElementById("riskLabel");
 let width = Math.min(risk * 12, 100);
 bar.style.width = width + "%";
 
+bar.classList.remove("pulse"); // reset first
+
 if(risk <= 2) {
     bar.style.background = "green";
+    label.innerText = "⚠️ Escalation Risk: Low";
+
 } else if(risk <= 4) {
     bar.style.background = "orange";
+    label.innerText = "⚠️ Escalation Risk: Moderate";
+
 } else {
     bar.style.background = "red";
+    label.innerText = "⚠️ Escalation Risk: High";
+
+    bar.classList.add("pulse"); // 🔥 pulse only when high risk
 }
 }
 
